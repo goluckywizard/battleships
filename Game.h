@@ -72,12 +72,19 @@ const option::Descriptor usage[] =
 enum DotState {UNKNOW = 0, MISS, HIT, KILL};
 
 class Gamer {
-public:
+protected:
     int attack_table[10][10];
     bool ship_table[10][10];
+public:
     virtual void shipArrangement() = 0;
     virtual int play() = 0;
     virtual void turn_result(int turn, int number) = 0;
+    bool getShiptable(int x, int y) {
+        return ship_table[x][y];
+    }
+    int getAttacktable(int x, int y){
+        return attack_table[x][y];
+    }
 };
 
 class ConsoleGamer : public Gamer {
@@ -113,11 +120,12 @@ public:
 std::unique_ptr<Gamer> choose_Gamer(int k);
 
 class Game {
-    bool check_ships(bool table[10][10]);
-    void Game::Turn(const std::shared_ptr<Gamer>& attacker, const std::shared_ptr<Gamer>& defender, int &hits);
+    bool check_ships(std::shared_ptr<Gamer> &gamer);
+    void Turn(const std::shared_ptr<Gamer>& attacker, const bool defenders_table[10][10], int &hits);
     void doGame(int g_type1, int g_type2);
 public:
     Game(int argc, char *argv[]);
 };
+
 
 

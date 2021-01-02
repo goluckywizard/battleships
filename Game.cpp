@@ -9,7 +9,13 @@ std::unique_ptr<Gamer> choose_Gamer(int k) {
         return std::make_unique<OptimalGamer>();
     }
 }
-bool Game::check_ships(bool table[10][10]) {
+bool Game::check_ships(std::shared_ptr<Gamer> &gamer) {
+    bool table[10][10];
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            table[i][j] = gamer->getShiptable(i, j);
+        }
+    }
     int count_ships[5] = {0, 0, 0, 0, 0};
     for (int i = 0; i < 9; ++i)
     {
@@ -73,21 +79,17 @@ bool Game::check_ships(bool table[10][10]) {
     return true;
 }
 
-void Game::Turn(const std::shared_ptr<Gamer>& attacker, const std::shared_ptr<Gamer>& defender, int &hits) {
+void Game::Turn(const std::shared_ptr<Gamer>& attacker, const bool defenders_table[10][10], int &hits) {
     struct ship_part {
         int place;
         bool isMarked;
     };
     //system("cls");
     int turn = attacker->play();
-    while ((*defender).ship_table[turn / 10][turn % 10]) {
-        bool isKill = true;
+    while (defenders_table[turn / 10][turn % 10]) {
         int x_cur = turn / 10, y_cur = turn % 10;
-        //std::pair<int, bool> ship_part;
         std::list<ship_part> ship;
         ship_part first_part{x_cur * 10 + y_cur, false};
-        //first_part.isMarked = true;
-        //first_part.place = x_cur * 10 + y_cur;
         ship.push_back(first_part);
         bool isAllShip = false;
         while (!isAllShip) {
@@ -103,7 +105,7 @@ void Game::Turn(const std::shared_ptr<Gamer>& attacker, const std::shared_ptr<Ga
                                 for (auto &iterator : ship) {
                                     isAlreadyPart |= (iterator.place == (iter.place + i*10 + j));
                                 }
-                                if (defender->ship_table[iter.place / 10 + i][iter.place % 10 + j] == 1 && !isAlreadyPart) {
+                                if (defenders_table[iter.place / 10 + i][iter.place % 10 + j] == 1 && !isAlreadyPart) {
                                     ship.push_back({(iter.place + i*10 + j), false});
                                 }
                             }
@@ -115,7 +117,7 @@ void Game::Turn(const std::shared_ptr<Gamer>& attacker, const std::shared_ptr<Ga
         std::cout << std::endl;
         isAllShip = true;
         for (auto &iter : ship) {
-            if (attacker->attack_table[iter.place / 10][iter.place % 10] == 0 && iter.place != turn) {
+            if (attacker->getAttacktable(iter.place / 10, iter.place % 10) == 0 && iter.place != turn) {
                 isAllShip = false;
             }
         }
@@ -138,27 +140,39 @@ void Game::doGame(int g_type1, int g_type2) {
     std::shared_ptr<Gamer> Gamer1(std::move(choose_Gamer(g_type1)));
     std::shared_ptr<Gamer> Gamer2(std::move(choose_Gamer(g_type2)));
     Gamer1->shipArrangement();
-    while (!check_ships(Gamer1->ship_table)) {
+    while (!check_ships(Gamer1)) {
         std::cout << "Nepravilno :(\n";
         Gamer1->shipArrangement();
+    }
+    bool first_table[10][10];
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            first_table[i][j] = Gamer1->getShiptable(i, j);
+        }
     }
     std::cout << "Pole prinyato OwO\n";
     Gamer2->shipArrangement();
     //system("cls");
-    while (!check_ships(Gamer2->ship_table)) {
+    while (!check_ships(Gamer2)) {
         std::cout << "Nepravilno :(\n";
         Gamer2->shipArrangement();
+    }
+    bool second_table[10][10];
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            second_table[i][j] = Gamer2->getShiptable(i, j);
+        }
     }
     std::cout << "Pole prinyato OwO\n";
     //system("cls");
     int hits1 = 0, hits2 = 0;
     while (hits1 != 20 && hits2 != 20) {
-        Turn(Gamer1, Gamer2, hits1);
+        Turn(Gamer1, second_table, hits1);
         if (hits1 == 20) {
             std::cout << "FIRST WON";
             break;
         }
-        Turn(Gamer2, Gamer1, hits2);
+        Turn(Gamer2, first_table, hits2);
         if (hits2 == 20) {
             std::cout << "SECOND WON";
             break;
@@ -194,19 +208,20 @@ Game::Game(int argc, char *argv[]) {
                     g_type1 = 2;
                 } else if (strncmp(opt.arg, "console", 7) == 0) {
                     g_type1 = 1;
-                } else if (strncmp(opt.arg, "optimal", 7)) {
+                } else if (strncmp(opt.arg, "optimal", 7) == 0) {
                     g_type1 = 3;
                 }
                 //std::cout << g_type1;
                 break;
             case SECOND:
-                if (opt.arg == "random") {
-                    g_type2 = 2;
-                } else if (opt.arg == "console") {
-                    g_type2 = 1;
-                } else if (opt.arg == "optimal") {
-                    g_type2 = 3;
+                if (strncmp(opt.arg, "random", 6) == 0) {
+                    g_type1 = 2;
+                } else if (strncmp(opt.arg, "console", 7) == 0) {
+                    g_type1 = 1;
+                } else if (strncmp(opt.arg, "optimal", 7) == 0) {
+                    g_type1 = 3;
                 }
+                //std::cout << g_type1;
                 break;
         }
     }
