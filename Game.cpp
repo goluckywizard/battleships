@@ -9,13 +9,7 @@ std::unique_ptr<Gamer> choose_Gamer(int k) {
         return std::make_unique<OptimalGamer>();
     }
 }
-bool Game::check_ships(std::shared_ptr<Gamer> &gamer) {
-    bool table[10][10];
-    for (int i = 0; i < 10; ++i) {
-        for (int j = 0; j < 10; ++j) {
-            table[i][j] = gamer->getShiptable(i, j);
-        }
-    }
+bool Game::check_ships(const std::vector<std::vector<bool> > &table) {
     int count_ships[5] = {0, 0, 0, 0, 0};
     for (int i = 0; i < 9; ++i)
     {
@@ -79,7 +73,7 @@ bool Game::check_ships(std::shared_ptr<Gamer> &gamer) {
     return true;
 }
 
-void Game::Turn(const std::shared_ptr<Gamer>& attacker, const bool defenders_table[10][10], int &hits) {
+void Game::Turn(const std::shared_ptr<Gamer>& attacker, const std::vector<std::vector<bool> > defenders_table, int &hits) {
     struct ship_part {
         int place;
         bool isMarked;
@@ -117,7 +111,7 @@ void Game::Turn(const std::shared_ptr<Gamer>& attacker, const bool defenders_tab
         std::cout << std::endl;
         isAllShip = true;
         for (auto &iter : ship) {
-            if (attacker->getAttacktable(iter.place / 10, iter.place % 10) == 0 && iter.place != turn) {
+            if (attacker->getAttacktable()[iter.place / 10][iter.place % 10] == 0 && iter.place != turn) {
                 isAllShip = false;
             }
         }
@@ -140,28 +134,22 @@ void Game::doGame(int g_type1, int g_type2) {
     std::shared_ptr<Gamer> Gamer1(std::move(choose_Gamer(g_type1)));
     std::shared_ptr<Gamer> Gamer2(std::move(choose_Gamer(g_type2)));
     Gamer1->shipArrangement();
-    while (!check_ships(Gamer1)) {
+    std::vector<std::vector<bool> > first_table;
+    first_table = Gamer1->getShiptable();
+    while (!check_ships(first_table)) {
         std::cout << "Nepravilno :(\n";
         Gamer1->shipArrangement();
-    }
-    bool first_table[10][10];
-    for (int i = 0; i < 10; ++i) {
-        for (int j = 0; j < 10; ++j) {
-            first_table[i][j] = Gamer1->getShiptable(i, j);
-        }
+        first_table = Gamer1->getShiptable();
     }
     std::cout << "Pole prinyato OwO\n";
     Gamer2->shipArrangement();
     //system("cls");
-    while (!check_ships(Gamer2)) {
+    std::vector<std::vector<bool> > second_table;
+    second_table = Gamer2->getShiptable();
+    while (!check_ships(second_table)) {
         std::cout << "Nepravilno :(\n";
         Gamer2->shipArrangement();
-    }
-    bool second_table[10][10];
-    for (int i = 0; i < 10; ++i) {
-        for (int j = 0; j < 10; ++j) {
-            second_table[i][j] = Gamer2->getShiptable(i, j);
-        }
+        second_table = Gamer2->getShiptable();
     }
     std::cout << "Pole prinyato OwO\n";
     //system("cls");

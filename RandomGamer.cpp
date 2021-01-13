@@ -1,6 +1,6 @@
 #include "Game.h"
 #pragma once
-void RandomGamer::shipArrangement(){
+void RandomGamer::shipArrangement() {
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
             attack_table[i][j] = 0;

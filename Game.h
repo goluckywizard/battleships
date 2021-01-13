@@ -73,17 +73,23 @@ enum DotState {UNKNOW = 0, MISS, HIT, KILL};
 
 class Gamer {
 protected:
-    int attack_table[10][10];
-    bool ship_table[10][10];
+    std::vector<std::vector<int> > attack_table;
+    std::vector<std::vector<bool> > ship_table;
 public:
+    Gamer() {
+        for (int i = 0; i < 10; ++i) {
+            ship_table.emplace_back(10);
+            attack_table.emplace_back(std::vector<int>(10));
+        }
+    }
     virtual void shipArrangement() = 0;
     virtual int play() = 0;
     virtual void turn_result(int turn, int number) = 0;
-    bool getShiptable(int x, int y) {
-        return ship_table[x][y];
+    std::vector<std::vector<bool> > getShiptable() const{
+        return ship_table;
     }
-    int getAttacktable(int x, int y){
-        return attack_table[x][y];
+    std::vector<std::vector<int> > getAttacktable() const {
+        return attack_table;
     }
 };
 
@@ -120,8 +126,8 @@ public:
 std::unique_ptr<Gamer> choose_Gamer(int k);
 
 class Game {
-    bool check_ships(std::shared_ptr<Gamer> &gamer);
-    void Turn(const std::shared_ptr<Gamer>& attacker, const bool defenders_table[10][10], int &hits);
+    bool check_ships(const std::vector<std::vector<bool> > &table);
+    void Turn(const std::shared_ptr<Gamer>& attacker, const std::vector<std::vector<bool> > defenders_table, int &hits);
     void doGame(int g_type1, int g_type2);
 public:
     Game(int argc, char *argv[]);
